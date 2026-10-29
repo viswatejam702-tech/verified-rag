@@ -1,0 +1,10 @@
+# Solid-State Lithium Metal Batteries: Electrolyte Interfaces and Dendrite Suppression
+
+All-solid-state lithium batteries (ASSBs) offer significant safety and energy density advantages over conventional lithium-ion cells by replacing flammable organic liquid electrolytes with non-flammable solid electrolytes. Solid-state architectures enable the direct utilization of pure lithium metal anodes (theoretical specific capacity of 3,860 mAh/g vs 372 mAh/g for graphite anodes), enabling cell-level gravimetric energy densities surpassing 450 to 500 Wh/kg.
+
+Three primary classes of solid electrolytes dominate contemporary research:
+1. **Oxide Ceramic Electrolytes** (e.g., Garnet-type $Li_7La_3Zr_2O_{12}$ or LLZO): Exhibit exceptional electrochemical stability windows (> 4.5 V vs $Li/Li^+$) and high shear moduli ($> 60 \text{ GPa}$), but suffer from high grain boundary interfacial resistance.
+2. **Sulfide-based Electrolytes** (e.g., Argyrodites $Li_6PS_5Cl$ and $Li_{10}GeP_2S_{12}$): Demonstrate ionic conductivities exceeding $10^{-2} \text{ S/cm}$ at room temperature (comparable to liquid electrolytes) and favorable mechanical deformability, but require hermetic moisture protection to prevent toxic hydrogen sulfide ($H_2S$) gas liberation.
+3. **Polymer Electrolytes** (e.g., Polyethylene oxide / PEO doped with LiTFSI): Provide scalable roll-to-roll processability but require elevated operating temperatures (60°C to 80°C) to maintain adequate ionic mobility above the polymer glass transition.
+
+Lithium dendrite penetration along ceramic grain boundaries during high-rate charging remains a fundamental degradation pathway, mitigated by atomic layer deposition (ALD) of thin zinc or alumina interlayers and uniform stack pressure application (1 to 5 MPa).

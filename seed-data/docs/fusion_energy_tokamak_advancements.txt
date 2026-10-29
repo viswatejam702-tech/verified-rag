@@ -1,0 +1,9 @@
+# Magnetic Confinement Fusion: Tokamak Dynamics and High-Temperature Superconductors
+
+Magnetic confinement fusion aims to recreate the energetic reactions of stellar cores by heating deuterium-tritium (D-T) fuel mixtures into high-temperature plasmas exceeding 100 million Kelvin (approximately 10 to 15 keV). At these extreme temperatures, the Coulomb barrier between atomic nuclei is overcome, generating energetic helium-4 alpha particles (3.5 MeV) and high-energy neutrons (14.1 MeV).
+
+The Lawson criterion defines the threshold for net energy gain ($Q > 1$), requiring the triple product of plasma density ($n$), confinement time ($\tau_E$), and ion temperature ($T$) to exceed $3 \times 10^{21} \text{ m}^{-3} \text{s keV}$.
+
+Tokamaks employ helical magnetic fields created by toroidal field coils and an induced poloidal field driven by a central solenoid. The recent deployment of Rare-Earth Barium Copper Oxide (REBCO) High-Temperature Superconductor (HTS) tape allows magnetic field strengths exceeding 20 Tesla at the magnetic axis. Because fusion power density scales proportionally to the fourth power of the magnetic field ($B^4$), HTS magnets enable compact tokamak designs with dramatically reduced volume and capital expense compared to ITER.
+
+Key plasma instabilities, including Edge Localized Modes (ELMs) and neoclassical tearing modes, are actively suppressed via resonant magnetic perturbations (RMP) and continuous electron cyclotron resonance heating (ECRH).

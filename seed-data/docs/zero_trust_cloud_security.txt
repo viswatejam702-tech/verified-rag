@@ -1,0 +1,12 @@
+# Zero Trust Security Architecture: NIST SP 800-207 Principles
+
+The Zero Trust Architecture (ZTA), formalized in NIST Special Publication 800-207, fundamentally abandons the traditional "castle-and-moat" perimeter security model. In a Zero Trust environment, no user, device, or network packet is inherently trusted by default, regardless of whether the traffic originates within the internal corporate LAN or across the public internet.
+
+The core tenets of NIST SP 800-207 mandate:
+1. All data sources and computing services are considered enterprise resources.
+2. All communication is secured regardless of network location.
+3. Access to individual enterprise resources is granted on a per-session basis and governed by Dynamic Least Privilege.
+4. Access decisions are dynamically evaluated by a Policy Engine (PE) and enforced by a Policy Enforcement Point (PEP) based on continuous behavioral risk signals, device posture, and user identity.
+5. The enterprise monitors and measures the integrity and security posture of all owned and associated assets.
+
+Identity and Access Management (IAM) incorporates continuous adaptive authentication (such as FIDO2 WebAuthn cryptographic hardware tokens) rather than static passwords. Network segmentation transitions from broad virtual local area networks (VLANs) to software-defined microsegmentation, preventing lateral attacker movement following initial perimeter breaches.

@@ -1,0 +1,9 @@
+# Quantum Computing: Fault-Tolerant Logical Qubits and Surface Codes
+
+Recent advancements in quantum information science have transitioned quantum computing from the Noisy Intermediate-Scale Quantum (NISQ) era toward fault-tolerant quantum computation. A primary hurdle in building scalable quantum processors is quantum decoherence and physical gate errors, which typically range between 0.1% and 1.0% in superconducting circuits.
+
+In 2024, researchers demonstrated quantum error correction using rotated surface codes, achieving a physical-to-logical qubit ratio of approximately 1,000 physical qubits per fault-tolerant logical qubit. Surface codes employ two-dimensional square lattices of data and syndrome qubits to detect bit-flip (X) and phase-flip (Z) errors without collapsing the underlying superposition state.
+
+Superconducting transmon architectures, operating at dilution refrigerator temperatures of approximately 15 millikelvin, utilize microwave resonator cavities for non-demolition readout. Companies like IBM, Google Quantum AI, and Rigetti Computing have scaled processor counts beyond 1,000 physical qubits, such as IBM Condor (1,121 qubits) and Heron architecture with tunable couplers.
+
+Simultaneously, neutral atom quantum processors utilizing optical tweezers to trap rubidium or ytterbium atoms have demonstrated two-qubit entangling gate fidelities exceeding 99.5% using Rydberg state interactions. Neutral atom systems allow dynamic reconfiguration of qubit geometry in three dimensions during algorithmic execution, facilitating non-local entanglement operations that significantly reduce the circuit depth required for Shor's and Grover's algorithms.

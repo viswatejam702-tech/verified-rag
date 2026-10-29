@@ -1,0 +1,9 @@
+# Lipid Nanoparticle (LNP) Formulations for mRNA Vaccine Delivery
+
+Messenger RNA (mRNA) therapeutics rely heavily on specialized delivery vectors due to the hydrophilic nature, negative charge, and enzymatic vulnerability of naked ribonucleic acids in systemic circulation. Lipid Nanoparticles (LNPs) have emerged as the gold standard delivery vehicle, composed of four distinct lipid components: ionizable cationic lipids, helper lipids, cholesterol, and PEGylated lipids.
+
+The ionizable lipid is the core functional driver of cellular delivery. At physiological pH (7.4), ionizable lipids maintain a near-neutral surface charge, which reduces non-specific systemic toxicity and extends circulation half-life. Upon cellular uptake via clathrin-mediated endocytosis, the acidic microenvironment of the endosome (pH 5.5–6.0) protonates the amine headgroups of the ionizable lipid, inducing an electrostatic interaction with the negatively charged endosomal membrane that triggers endosomal escape.
+
+Helper phospholipids, such as distearoylphosphatidylcholine (DSPC), provide structural bilayer stability. Cholesterol modulates membrane rigidity and phase transitions, while polyethylene glycol (PEG)-conjugated lipids control particle size during microfluidic formulation and prevent premature aggregation in storage.
+
+Modern LNP formulations maintain an average hydrodynamic diameter between 60 nm and 100 nm, with mRNA encapsulation efficiencies typically exceeding 90%. Storage stability remains a key challenge, requiring ultra-cold chain infrastructure at temperatures between -80°C and -20°C unless lyophilization techniques with cryoprotectants like trehalose or sucrose are employed.

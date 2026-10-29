@@ -1,0 +1,7 @@
+# Exoplanet Atmospheric Characterization via Transmission Spectroscopy
+
+Transmission spectroscopy provides empirical insight into the chemical composition and atmospheric thermal structure of extrasolar planets. When an exoplanet transits its host star, a minute fraction of stellar photons filters through the planetary atmospheric annulus. Chemical constituents absorb specific wavelengths corresponding to quantum vibrational-rotational molecular transitions.
+
+The James Webb Space Telescope (JWST), equipped with NIRSpec (Near-Infrared Spectrograph) and MIRI (Mid-Infrared Instrument), observes across wavelength bands from 0.6 to 28 microns. Spectral signatures have confirmed water vapor ($H_2O$), carbon dioxide ($CO_2$), methane ($CH_4$), carbon monoxide ($CO$), and sulfur dioxide ($SO_2$) in atmospheres ranging from hot Jupiters (such as WASP-39b) to sub-Neptunes (K2-18b).
+
+Photochemical production of sulfur dioxide ($SO_2$) in WASP-39b provided the first direct evidence of active atmospheric photochemistry triggered by stellar ultraviolet radiation. Furthermore, transmission depths measuring transit atmospheric scale heights ($H = k_B T / \mu g$) permit astronomers to constrain atmospheric metallicity ($[M/H]$) and the carbon-to-oxygen ($C/O$) ratio, offering direct observational clues regarding planetary accretion and migration histories across protoplanetary disks.

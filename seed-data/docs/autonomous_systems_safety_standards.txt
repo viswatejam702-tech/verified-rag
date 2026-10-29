@@ -1,0 +1,9 @@
+# Autonomous Driving Safety Standards: ISO 26262 and SOTIF (ISO 21448)
+
+Safety validation in autonomous vehicles (SAE Level 3 to Level 5) requires multi-tiered engineering compliance frameworks. Traditional automotive functional safety is governed by ISO 26262, which specifies Automotive Safety Integrity Levels (ASIL A through ASIL D, where ASIL D represents the most stringent rigor) based on severity, exposure probability, and controllability.
+
+However, ISO 26262 primarily addresses electronic and electrical system hardware faults and software bugs. To account for autonomous perception limitations, machine learning edge cases, and sensor degradation without mechanical faults, the International Organization for Standardization established ISO 21448, termed "Safety of the Intended Functionality" (SOTIF).
+
+SOTIF emphasizes the systematic minimization of "Unknown Unsafe" operational scenarios. Autonomous perception pipelines integrate sensor fusion across three primary modalities: LiDAR (providing millimeter-precision 3D spatial point clouds), automotive FMCW Radar (operating at 77 GHz to penetrate heavy fog, rain, and snow), and high-dynamic-range HDR cameras (processing RGB color semantics, traffic signals, and lane markings).
+
+Redundancy architectures demand independent compute paths and fail-operational power steering and braking subsystems. Real-time compute hardware must achieve Mean Time Between Critical Failures (MTBF) exceeding 100,000 operational hours and maintain sensor-to-actuator latency under 100 milliseconds for emergency collision avoidance maneuvers.

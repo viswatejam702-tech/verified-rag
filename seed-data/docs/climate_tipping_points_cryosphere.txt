@@ -1,0 +1,9 @@
+# Cryospheric Dynamics and Abrupt Earth System Tipping Points
+
+Climate tipping points represent nonlinear threshold transitions where small increments in global mean surface temperature trigger irreversible, self-reinforcing destabilization of macroscopic biophysical Earth subsystems.
+
+The cryosphere contains several vulnerable elements:
+1. **Greenland Ice Sheet (GIS)**: Hosts approximately 7.2 meters of global sea level rise equivalent. The elevation-melt feedback creates hysteresis: as the surface ice melts, the surface altitude drops into warmer atmospheric layers, accelerating mass loss even if ambient temperatures stabilize.
+2. **West Antarctic Ice Sheet (WAIS)**: Vulnerable to Marine Ice Sheet Instability (MISI) and Marine Ice Cliff Instability (MICI). Glaciers such as Thwaites and Pine Island rest on retrograde bedrock topography (sloping downward toward the continental interior), exposing retrograde grounding lines to warm Circumpolar Deep Water (CDW) intrusions that induce uncontrolled runaway retreat.
+3. **Atlantic Meridional Overturning Circulation (AMOC)**: Driven by North Atlantic deep water formation through thermohaline density gradients. Massive freshwater influx from Arctic sea ice melt and Greenland ablation reduces sea surface salinity, dampening convective overturning and approaching a critical bifurcation threshold.
+4. **Circumpolar Permafrost Thaw**: Continuous permafrost soils store an estimated 1,400 to 1,600 gigatons of organic carbon. Microbial decomposition under aerobic conditions releases $CO_2$, while anaerobic conditions in thermokarst lakes generate methane ($CH_4$), introducing a potent positive carbon cycle feedback loop.

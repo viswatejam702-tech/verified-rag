@@ -1,0 +1,9 @@
+# Sim-to-Real Transfer in Deep Reinforcement Learning for Robotic Manipulation
+
+Training physical robotic manipulators via Deep Reinforcement Learning (DRL) directly in hardware is sample-inefficient and risks equipment damage during exploratory policy iterations. Consequently, modern robotics leverages massively parallel physics simulation frameworks (such as Isaac Sim, MuJoCo, and PyBullet) combined with Sim-to-Real domain randomization to bridge the reality gap.
+
+Domain Randomization (DR) injects stochastic perturbations into simulation parameters during policy optimization using model-free algorithms like Proximal Policy Optimization (PPO) or Soft Actor-Critic (SAC). Parameters varied across rollouts include link masses, joint friction coefficients, actuator motor latency, surface restitution, and camera lighting/noise models.
+
+Domain adaptation is further bolstered by Teacher-Student distillation. Privileged information (e.g., ground-truth object poses, contact normal forces, and terrain elevation maps) is accessible exclusively to an omniscient Teacher network in simulation. The Student network, constrained to realistic sensory inputs (depth camera point clouds and joint proprioception), is trained via imitation learning to replicate Teacher latent representations.
+
+Recent deployments demonstrate zero-shot dynamic bipedal and quadrupedal locomotion across unstructured rugged terrains and contact-rich dexterous in-hand manipulation of deformable everyday objects.

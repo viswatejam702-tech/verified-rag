@@ -1,0 +1,9 @@
+# Neuromorphic Computing: Spiking Neural Networks and Asynchronous Hardware
+
+Neuromorphic engineering replaces conventional von Neumann architectures with event-driven, brain-inspired computational substrates. Traditional computing suffers from the "von Neumann bottleneck," where data transfer between physically separated Central Processing Units (CPUs) and memory modules consumes upwards of 80% of total energy in deep learning workloads.
+
+Neuromorphic architectures, such as Intel Loihi 2, IBM TrueNorth, and BrainChip Akida, co-locate processing and non-volatile memory in massively parallel arrays of artificial neurons and synaptic crossbars. Rather than processing continuous-valued activation tensors, neuromorphic chips process discrete, asynchronous temporal spikes (action potentials) using Spiking Neural Networks (SNNs).
+
+Information is encoded using temporal spike timing, inter-spike intervals (ISI), or rate coding. Synaptic plasticity is governed locally by Spike-Timing-Dependent Plasticity (STDP), adjusting synaptic weights based on the sub-millisecond arrival order of pre-synaptic and post-synaptic pulses without requiring global backpropagation.
+
+Neuromorphic systems achieve sub-milliwatt power consumption during sparse event workloads (e.g., continuous acoustic keyword spotting or event camera visual odometry), delivering energy efficiencies up to 1,000 times greater than traditional graphics processing units (GPUs).

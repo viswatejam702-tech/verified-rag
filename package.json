@@ -1,0 +1,10 @@
+{
+  "name": "verified-rag",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix next-app install && npm --prefix next-app run build",
+    "start": "npm --prefix next-app start",
+    "dev": "npm --prefix next-app run dev"
+  }
+}

@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: verified-rag
+    env: node
+    rootDir: next-app
+    buildCommand: npm install && npm run build
+    startCommand: npm start
