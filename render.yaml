@@ -5,3 +5,4 @@ services:
     rootDir: next-app
     buildCommand: npm install && npm run build
     startCommand: npm start
+

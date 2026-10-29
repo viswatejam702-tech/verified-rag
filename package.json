@@ -8,3 +8,4 @@
     "dev": "npm --prefix next-app run dev"
   }
 }
+
