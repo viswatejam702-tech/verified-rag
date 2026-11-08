@@ -68,7 +68,7 @@ interface ChatMessage {
 }
 
 export default function VerifiedRagApp() {
-  const [activeTab, setActiveTab] = useState<"chat" | "pipeline" | "knowledge" | "eval">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "pipeline" | "knowledge" | "eval" | "lewis-rag">("chat");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome-msg",
@@ -110,6 +110,36 @@ export default function VerifiedRagApp() {
   // Eval State
   const [evalLoading, setEvalLoading] = useState(false);
   const [evalResults, setEvalResults] = useState<any>(null);
+
+  // Lewis et al. (NeurIPS 2020) RAG State
+  const [lewisQuery, setLewisQuery] = useState('Define "middle ear"');
+  const [lewisTaskType, setLewisTaskType] = useState<"question_answering" | "fact_verification" | "jeopardy_generation">("question_answering");
+  const [lewisModelVariant, setLewisModelVariant] = useState<"rag_sequence" | "rag_token">("rag_sequence");
+  const [lewisLoading, setLewisLoading] = useState(false);
+  const [lewisResult, setLewisResult] = useState<any>(null);
+
+  const runLewisRAG = async (queryOverride?: string, taskOverride?: "question_answering" | "fact_verification" | "jeopardy_generation") => {
+    setLewisLoading(true);
+    const q = queryOverride !== undefined ? queryOverride : lewisQuery;
+    const task = taskOverride !== undefined ? taskOverride : lewisTaskType;
+    try {
+      const res = await fetch("/api/lewis-rag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query_x: q,
+          task_type: task,
+          model_variant: lewisModelVariant,
+        })
+      });
+      const data = await res.json();
+      setLewisResult(data);
+    } catch (err) {
+      console.error("Lewis RAG run failed", err);
+    } finally {
+      setLewisLoading(false);
+    }
+  };
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -447,6 +477,22 @@ export default function VerifiedRagApp() {
               }`}
             >
               Benchmark Hub
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("lewis-rag");
+                if (!lewisResult) {
+                  runLewisRAG();
+                }
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                activeTab === "lewis-rag"
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30"
+                  : "text-purple-300 hover:text-white hover:bg-purple-900/30"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>NeurIPS 2020 RAG</span>
             </button>
           </nav>
 
@@ -868,6 +914,269 @@ export default function VerifiedRagApp() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "lewis-rag" && (
+            <div className="glass-panel p-6 rounded-2xl border border-purple-500/20 space-y-6 animate-in fade-in duration-200">
+              {/* Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-base font-bold text-white tracking-tight">
+                      Lewis et al. (NeurIPS 2020) RAG Architecture
+                    </h2>
+                    <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full font-mono">
+                      FIGURE 1 REPRODUCTION
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Non-parametric MIPS retriever p_η(z|x) coupled with marginalized parametric generator p_θ(y|x, z).
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <span className="text-slate-400 text-[11px]">Variant:</span>
+                  <div className="inline-flex rounded-lg p-0.5 bg-slate-900 border border-white/10">
+                    <button
+                      onClick={() => setLewisModelVariant("rag_sequence")}
+                      className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
+                        lewisModelVariant === "rag_sequence"
+                          ? "bg-purple-600 text-white shadow"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      RAG-Sequence
+                    </button>
+                    <button
+                      onClick={() => setLewisModelVariant("rag_token")}
+                      className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
+                        lewisModelVariant === "rag_token"
+                          ? "bg-purple-600 text-white shadow"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      RAG-Token
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Task Head Selector & Benchmark Presets */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Figure 1 Benchmark Presets:
+                  </span>
+                  <span className="text-[11px] text-purple-400 font-mono">
+                    Task Head: {lewisTaskType.replace("_", " ").toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    onClick={() => {
+                      setLewisTaskType("question_answering");
+                      setLewisQuery('Define "middle ear"');
+                      runLewisRAG('Define "middle ear"', "question_answering");
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      lewisTaskType === "question_answering"
+                        ? "bg-purple-950/40 border-purple-500/50 shadow-lg shadow-purple-950/50"
+                        : "bg-slate-900/60 border-white/5 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="text-[11px] font-bold text-indigo-400 flex items-center gap-1.5 mb-1">
+                      <BookOpen className="w-3.5 h-3.5" /> Head A: Question Answering
+                    </div>
+                    <div className="text-xs text-white font-medium">Define "middle ear" (x)</div>
+                    <div className="text-[10px] text-slate-400 mt-1 font-mono">Output: Answer Generation (y)</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setLewisTaskType("fact_verification");
+                      setLewisQuery("Barack Obama was born in Hawaii.");
+                      runLewisRAG("Barack Obama was born in Hawaii.", "fact_verification");
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      lewisTaskType === "fact_verification"
+                        ? "bg-purple-950/40 border-purple-500/50 shadow-lg shadow-purple-950/50"
+                        : "bg-slate-900/60 border-white/5 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 mb-1">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Head B: Fact Verification
+                    </div>
+                    <div className="text-xs text-white font-medium">Barack Obama was born in Hawaii. (x)</div>
+                    <div className="text-[10px] text-slate-400 mt-1 font-mono">Output: FEVER Label supports (y)</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setLewisTaskType("jeopardy_generation");
+                      setLewisQuery("The Divine Comedy");
+                      runLewisRAG("The Divine Comedy", "jeopardy_generation");
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      lewisTaskType === "jeopardy_generation"
+                        ? "bg-purple-950/40 border-purple-500/50 shadow-lg shadow-purple-950/50"
+                        : "bg-slate-900/60 border-white/5 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 mb-1">
+                      <Zap className="w-3.5 h-3.5" /> Head C: Jeopardy Clue
+                    </div>
+                    <div className="text-xs text-white font-medium">The Divine Comedy (x)</div>
+                    <div className="text-[10px] text-slate-400 mt-1 font-mono">Output: Clue Question (y)</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Execution Form */}
+              <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={lewisQuery}
+                  onChange={e => setLewisQuery(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && runLewisRAG()}
+                  placeholder="Enter query x (question, fact statement, or entity)..."
+                  className="flex-1 bg-slate-800/90 border border-white/10 rounded-lg px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 font-mono transition-colors"
+                />
+                <button
+                  onClick={() => runLewisRAG()}
+                  disabled={lewisLoading || !lewisQuery.trim()}
+                  className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all"
+                >
+                  {lewisLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  <span>{lewisLoading ? "Marginalizing..." : "Run Marginalization"}</span>
+                </button>
+              </div>
+
+              {/* Live Output Section */}
+              {lewisResult && (
+                <div className="space-y-5 animate-in fade-in duration-200">
+                  {/* Generator Output Card */}
+                  <div className="p-4 rounded-xl bg-slate-900/90 border border-purple-500/30 space-y-3 shadow-xl">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Parametric Generator p_θ</span>
+                        <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">
+                          {lewisResult.model_variant}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs font-mono">
+                        <span className="text-emerald-400 font-bold">
+                          p(y|x): {(lewisResult.marginal_probability * 100).toFixed(1)}%
+                        </span>
+                        <span className="text-slate-500">
+                          log p: {lewisResult.sequence_log_likelihood}
+                        </span>
+                        <span className="text-slate-500">
+                          ⚡ {lewisResult.latency_ms}ms
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-400 font-mono">Generated Output (y):</div>
+                      <div className="p-3 rounded-lg bg-black/40 border border-white/10 text-sm font-medium text-slate-100 leading-relaxed flex items-center justify-between">
+                        <span>{lewisResult.generated_y}</span>
+                        {lewisResult.verification_label && (
+                          <span
+                            className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold uppercase tracking-wider ${
+                              lewisResult.verification_label === "supports"
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                : lewisResult.verification_label === "refutes"
+                                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                            }`}
+                          >
+                            {lewisResult.verification_label}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Per-token Attributions (for RAG-Token) */}
+                    {lewisResult.per_token_attributions && (
+                      <div className="pt-2 border-t border-white/10 space-y-1.5">
+                        <div className="text-[10px] text-slate-400 uppercase font-mono font-bold">
+                          RAG-Token Step-Wise Marginalization & Attributions:
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {lewisResult.per_token_attributions.map((t: any, idx: number) => (
+                            <span
+                              key={idx}
+                              title={`Token: "${t.token}" | Marginal P: ${(t.marginal_p * 100).toFixed(1)}%`}
+                              className="px-1.5 py-0.5 rounded text-[11px] font-mono bg-purple-900/40 border border-purple-500/30 text-purple-200"
+                            >
+                              {t.token}
+                              <span className="ml-1 text-[9px] text-purple-400 font-bold">
+                                {(t.marginal_p * 100).toFixed(0)}%
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Latent Retrieved Documents p_η(z|x) */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <Database className="w-3.5 h-3.5 text-purple-400" />
+                        Retriever p_η(z|x) MIPS Latent Passages (Top Candidates):
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        Formula: p_η(z|x) = softmax( q(x)^T d(z) / τ )
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {lewisResult.latent_documents.map((doc: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-xl bg-slate-900/70 border border-white/10 space-y-2 hover:border-purple-500/40 transition-colors"
+                        >
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-[10px] font-mono text-purple-300">
+                                z{idx + 1}
+                              </span>
+                              {doc.document_title}
+                            </span>
+                            <span className="font-mono text-xs font-bold text-purple-400">
+                              p_η: {(doc.prior_prob * 100).toFixed(1)}%
+                            </span>
+                          </div>
+
+                          {/* Prior Probability Progress Bar */}
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-purple-500 to-indigo-400 h-full rounded-full transition-all duration-300"
+                              style={{ width: `${Math.min(doc.prior_prob * 100, 100)}%` }}
+                            />
+                          </div>
+
+                          <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed italic">
+                            "{doc.content}"
+                          </p>
+
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1 border-t border-white/5">
+                            <span>MIPS Score: {doc.mips_score}</span>
+                            <span>ID: {doc.chunk_id}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
