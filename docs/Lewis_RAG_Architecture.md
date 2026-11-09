@@ -120,3 +120,4 @@ In this platform, the Lewis RAG architecture operates alongside the **Cross-Enco
 - File: [`core/lewis_rag.py`](file:///c:/Users/VISWA/OneDrive/Pictures/Screenshots/apps%20play%20and%20app%20store/VTR/verified-rag/core/lewis_rag.py)
 - Unit & Integration Test Suite: [`eval/test_lewis_rag.py`](file:///c:/Users/VISWA/OneDrive/Pictures/Screenshots/apps%20play%20and%20app%20store/VTR/verified-rag/eval/test_lewis_rag.py)
 - REST API Endpoint: [`next-app/app/api/lewis-rag/route.ts`](file:///c:/Users/VISWA/OneDrive/Pictures/Screenshots/apps%20play%20and%20app%20store/VTR/verified-rag/next-app/app/api/lewis-rag/route.ts)
+

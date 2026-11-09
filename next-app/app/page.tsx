@@ -22,7 +22,14 @@ import {
   ArrowRight,
   Info,
   Terminal,
-  Zap
+  Zap,
+  Key,
+  Server,
+  Globe,
+  Plus,
+  Trash2,
+  Check,
+  Activity
 } from "lucide-react";
 
 interface ClaimResult {
@@ -67,8 +74,100 @@ interface ChatMessage {
   timestamp: string;
 }
 
+interface GatewayModel {
+  id: string;
+  name: string;
+  model_name: string;
+  provider: "openai_compatible" | "openai" | "anthropic" | "gemini" | "ollama" | "deepseek" | "groq" | "custom";
+  base_url: string;
+  api_key: string;
+  temperature: number;
+  max_tokens: number;
+  is_preset?: boolean;
+}
+
+const DEFAULT_GATEWAY_MODELS: GatewayModel[] = [
+  {
+    id: "model-deepseek-chat",
+    name: "DeepSeek V3 (Chat)",
+    model_name: "deepseek-chat",
+    provider: "openai_compatible",
+    base_url: "https://api.deepseek.com/v1",
+    api_key: "",
+    temperature: 0.2,
+    max_tokens: 1024,
+    is_preset: true
+  },
+  {
+    id: "model-deepseek-r1",
+    name: "DeepSeek R1 (Reasoner)",
+    model_name: "deepseek-reasoner",
+    provider: "openai_compatible",
+    base_url: "https://api.deepseek.com/v1",
+    api_key: "",
+    temperature: 0.6,
+    max_tokens: 2048,
+    is_preset: true
+  },
+  {
+    id: "model-gpt4o",
+    name: "OpenAI GPT-4o",
+    model_name: "gpt-4o",
+    provider: "openai",
+    base_url: "https://api.openai.com/v1",
+    api_key: "",
+    temperature: 0.2,
+    max_tokens: 1024,
+    is_preset: true
+  },
+  {
+    id: "model-claude35",
+    name: "Claude 3.5 Sonnet",
+    model_name: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    base_url: "https://api.anthropic.com/v1",
+    api_key: "",
+    temperature: 0.2,
+    max_tokens: 1024,
+    is_preset: true
+  },
+  {
+    id: "model-gemini20",
+    name: "Gemini 2.0 Flash",
+    model_name: "gemini-2.0-flash",
+    provider: "gemini",
+    base_url: "https://generativelanguage.googleapis.com",
+    api_key: "",
+    temperature: 0.2,
+    max_tokens: 1024,
+    is_preset: true
+  },
+  {
+    id: "model-groq-llama",
+    name: "Groq LLaMA 3.3 70B",
+    model_name: "llama-3.3-70b-versatile",
+    provider: "openai_compatible",
+    base_url: "https://api.groq.com/openai/v1",
+    api_key: "",
+    temperature: 0.2,
+    max_tokens: 1024,
+    is_preset: true
+  },
+  {
+    id: "model-ollama-local",
+    name: "Local Ollama / vLLM",
+    model_name: "llama3.2",
+    provider: "ollama",
+    base_url: "http://localhost:11434/v1",
+    api_key: "ollama",
+    temperature: 0.2,
+    max_tokens: 1024,
+    is_preset: true
+  }
+];
+
 export default function VerifiedRagApp() {
-  const [activeTab, setActiveTab] = useState<"chat" | "pipeline" | "knowledge" | "eval" | "lewis-rag">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "pipeline" | "knowledge" | "eval" | "lewis-rag" | "gateway">("chat");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome-msg",
@@ -138,6 +237,92 @@ export default function VerifiedRagApp() {
       console.error("Lewis RAG run failed", err);
     } finally {
       setLewisLoading(false);
+    }
+  };
+
+  // Model Gateway & Multi-Model Comparison State
+  const [gatewayModels, setGatewayModels] = useState<GatewayModel[]>(DEFAULT_GATEWAY_MODELS);
+  const [selectedModelIds, setSelectedModelIds] = useState<string[]>(["model-deepseek-chat", "model-gpt4o"]);
+  const [compareQuery, setCompareQuery] = useState("Explain fault-tolerant logical qubits in superconducting quantum computing");
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [comparisonResults, setComparisonResults] = useState<any>(null);
+  const [showAddModelModal, setShowAddModelModal] = useState(false);
+
+  // New Model Form State
+  const [newModelName, setNewModelName] = useState("");
+  const [newModelLabel, setNewModelLabel] = useState("");
+  const [newModelProvider, setNewModelProvider] = useState<"openai_compatible" | "openai" | "anthropic" | "gemini" | "ollama">("openai_compatible");
+  const [newModelBaseUrl, setNewModelBaseUrl] = useState("https://api.openai.com/v1");
+  const [newModelApiKey, setNewModelApiKey] = useState("");
+  const [newModelTemperature, setNewModelTemperature] = useState(0.2);
+  const [newModelMaxTokens, setNewModelMaxTokens] = useState(1024);
+
+  const handleAddModel = () => {
+    if (!newModelName.trim() || !newModelBaseUrl.trim()) return;
+    const newEntry: GatewayModel = {
+      id: `custom-model-${Date.now()}`,
+      name: newModelLabel.trim() || newModelName.trim(),
+      model_name: newModelName.trim(),
+      provider: newModelProvider,
+      base_url: newModelBaseUrl.trim(),
+      api_key: newModelApiKey.trim(),
+      temperature: newModelTemperature,
+      max_tokens: newModelMaxTokens,
+      is_preset: false
+    };
+    setGatewayModels(prev => [...prev, newEntry]);
+    setSelectedModelIds(prev => [...prev, newEntry.id]);
+    setShowAddModelModal(false);
+    setNewModelName("");
+    setNewModelLabel("");
+    setNewModelApiKey("");
+  };
+
+  const handleDeleteModel = (id: string) => {
+    setGatewayModels(prev => prev.filter(m => m.id !== id));
+    setSelectedModelIds(prev => prev.filter(mid => mid !== id));
+  };
+
+  const toggleModelSelection = (id: string) => {
+    if (selectedModelIds.includes(id)) {
+      if (selectedModelIds.length > 1) {
+        setSelectedModelIds(selectedModelIds.filter(m => m !== id));
+      }
+    } else {
+      if (selectedModelIds.length < 4) {
+        setSelectedModelIds([...selectedModelIds, id]);
+      }
+    }
+  };
+
+  const runModelComparison = async (queryOverride?: string) => {
+    setCompareLoading(true);
+    const q = queryOverride || compareQuery;
+    const activeModels = gatewayModels.filter(m => selectedModelIds.includes(m.id));
+    try {
+      const res = await fetch("/api/models/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: q,
+          model_configs: activeModels.map(m => ({
+            id: m.id,
+            name: m.name,
+            model_name: m.model_name,
+            provider: m.provider,
+            base_url: m.base_url,
+            api_key: m.api_key,
+            temperature: m.temperature,
+            max_tokens: m.max_tokens
+          }))
+        })
+      });
+      const data = await res.json();
+      setComparisonResults(data);
+    } catch (err) {
+      console.error("Comparison execution failed", err);
+    } finally {
+      setCompareLoading(false);
     }
   };
 
@@ -493,6 +678,17 @@ export default function VerifiedRagApp() {
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>NeurIPS 2020 RAG</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("gateway")}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                activeTab === "gateway"
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30"
+                  : "text-emerald-300 hover:text-white hover:bg-emerald-900/30"
+              }`}
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Model Gateway & Compare</span>
             </button>
           </nav>
 
@@ -920,7 +1116,500 @@ export default function VerifiedRagApp() {
             </div>
           )}
 
-          {activeTab === "lewis-rag" && (
+          {activeTab === "gateway" && (
+            <div className="glass-panel p-6 rounded-2xl border border-emerald-500/20 space-y-6 animate-in fade-in duration-200">
+              {/* Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
+                      <Cpu className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-base font-bold text-white tracking-tight">
+                      Enterprise Model Gateway & Multi-Model Arena
+                    </h2>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-semibold">
+                      MULTI-GATEWAY ROUTING
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Connect any OpenAI-compatible proxy, Anthropic, Gemini, DeepSeek, Groq, or Local Ollama/vLLM gateway with model name, custom Base URL, and API key.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowAddModelModal(true)}
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 transition-all self-start md:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Model / Gateway</span>
+                </button>
+              </div>
+
+              {/* Gateway Models Grid */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Server className="w-3.5 h-3.5 text-emerald-400" /> Registered Model Endpoints ({gatewayModels.length})
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Selected for comparison: <strong className="text-emerald-400">{selectedModelIds.length}</strong> (select 2–4 models)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {gatewayModels.map(model => {
+                    const isSelected = selectedModelIds.includes(model.id);
+                    return (
+                      <div
+                        key={model.id}
+                        onClick={() => toggleModelSelection(model.id)}
+                        className={`p-3.5 rounded-xl border transition-all cursor-pointer relative ${
+                          isSelected
+                            ? "bg-emerald-950/40 border-emerald-500/50 shadow-lg shadow-emerald-950/40"
+                            : "bg-slate-900/60 border-white/5 hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                              <span>{model.name}</span>
+                            </div>
+                            <div className="text-[11px] font-mono text-emerald-400 mt-0.5 truncate max-w-[170px]">
+                              {model.model_name}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`w-4 h-4 rounded flex items-center justify-center text-[10px] ${
+                                isSelected ? "bg-emerald-500 text-black font-bold" : "border border-slate-600"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            </span>
+                            {!model.is_preset && (
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleDeleteModel(model.id);
+                                }}
+                                className="p-1 text-slate-500 hover:text-rose-400 transition-colors"
+                                title="Remove model"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3 h-3 text-slate-500" />
+                            <span className="truncate max-w-[130px]">{model.base_url.replace(/^https?:\/\//, "")}</span>
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 uppercase text-[9px]">
+                            {model.provider.replace("_compatible", "")}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Multi-Model Comparison Arena Section */}
+              <div className="pt-2 border-t border-white/10 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-indigo-400" /> Side-by-Side Grounded Comparison Arena
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 text-[11px]">
+                    <button
+                      onClick={() => {
+                        const q = "Explain fault-tolerant logical qubits in superconducting quantum computing";
+                        setCompareQuery(q);
+                        runModelComparison(q);
+                      }}
+                      className="px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-white/5 transition-colors font-mono text-[10px]"
+                    >
+                      #1 Quantum Qubits
+                    </button>
+                    <button
+                      onClick={() => {
+                        const q = "Define the anatomical structure and acoustic function of the human middle ear";
+                        setCompareQuery(q);
+                        runModelComparison(q);
+                      }}
+                      className="px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-white/5 transition-colors font-mono text-[10px]"
+                    >
+                      #2 Middle Ear Anatomy
+                    </button>
+                    <button
+                      onClick={() => {
+                        const q = "How does differential privacy with Rényi divergence bound re-identification risk?";
+                        setCompareQuery(q);
+                        runModelComparison(q);
+                      }}
+                      className="px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-white/5 transition-colors font-mono text-[10px]"
+                    >
+                      #3 Rényi Privacy
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-900/90 rounded-xl border border-white/10 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={compareQuery}
+                    onChange={e => setCompareQuery(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && runModelComparison()}
+                    placeholder="Enter benchmark prompt to compare all selected models side-by-side..."
+                    className="flex-1 bg-slate-800/90 border border-white/10 rounded-lg px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 font-mono transition-colors"
+                  />
+                  <button
+                    onClick={() => runModelComparison()}
+                    disabled={compareLoading || !compareQuery.trim() || selectedModelIds.length < 1}
+                    className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition-all whitespace-nowrap"
+                  >
+                    {compareLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                    <span>{compareLoading ? "Running Models..." : `Compare (${selectedModelIds.length})`}</span>
+                  </button>
+                </div>
+
+                {/* Comparison Results Grid */}
+                {comparisonResults && comparisonResults.results && (
+                  <div className="space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between text-xs text-slate-400 font-mono border-b border-white/10 pb-2">
+                      <span>Query: "{comparisonResults.query}"</span>
+                      <span>Total Time: ⚡ {comparisonResults.orchestration_latency_ms}ms</span>
+                    </div>
+
+                    <div className={`grid grid-cols-1 ${comparisonResults.results.length === 2 ? "md:grid-cols-2" : comparisonResults.results.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2 lg:grid-cols-4"} gap-4`}>
+                      {comparisonResults.results.map((res: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="p-4 rounded-xl bg-slate-900/90 border border-white/10 space-y-3.5 flex flex-col justify-between shadow-xl relative overflow-hidden"
+                        >
+                          <div className="space-y-3">
+                            {/* Column Header */}
+                            <div className="flex items-start justify-between border-b border-white/10 pb-2.5">
+                              <div>
+                                <span className="text-xs font-bold text-white block">{res.name}</span>
+                                <span className="text-[10px] font-mono text-emerald-400">{res.model_name}</span>
+                              </div>
+                              <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                                ⚡ {res.latency_ms}ms
+                              </span>
+                            </div>
+
+                            {/* Fidelity & Hallucination Gauges */}
+                            <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
+                              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
+                                <div className="text-xs font-bold text-emerald-400">
+                                  {(res.faithfulness_score * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-[9px] text-slate-400 uppercase mt-0.5">Faithfulness</div>
+                              </div>
+                              <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-center">
+                                <div className="text-xs font-bold text-rose-400">
+                                  {(res.hallucination_rate * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-[9px] text-slate-400 uppercase mt-0.5">Hallucination</div>
+                              </div>
+                            </div>
+
+                            {/* Generated Answer with Claims Color-coding */}
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] text-slate-400 uppercase font-mono font-bold">Answer Output:</span>
+                              <div className="p-3 rounded-lg bg-slate-950/80 border border-white/5 text-xs text-slate-200 leading-relaxed max-h-56 overflow-y-auto">
+                                {res.claims && res.claims.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {res.claims.map((c: any, cIdx: number) => {
+                                      const isVerified = c.verdict === "VERIFIED";
+                                      const isContra = c.verdict === "CONTRADICTION";
+                                      return (
+                                        <span
+                                          key={cIdx}
+                                          title={`Claim verdict: ${c.verdict} (${(c.confidence * 100).toFixed(0)}%)`}
+                                          className={`inline mr-1 px-1 py-0.5 rounded text-xs leading-relaxed ${
+                                            isVerified
+                                              ? "bg-emerald-500/15 text-emerald-200 border-b border-emerald-500/40"
+                                              : isContra
+                                              ? "bg-rose-500/20 text-rose-200 border-b border-rose-500/40"
+                                              : "bg-amber-500/15 text-amber-200 border-b border-amber-500/40"
+                                          }`}
+                                        >
+                                          {c.claim}{" "}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p>{res.answer}</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Claims Breakdown Summary */}
+                            <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between border-t border-white/5 pt-2">
+                              <span>Verified: <strong className="text-emerald-400">{res.verified_claims_count}</strong></span>
+                              <span>Unsupported: <strong className="text-amber-400">{res.unsupported_claims_count}</strong></span>
+                              <span>Contradicted: <strong className="text-rose-400">{res.contradicted_claims_count}</strong></span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Shared Evidence Context Passages */}
+                    {comparisonResults.retrieved_passages && (
+                      <div className="p-4 rounded-xl bg-slate-950 border border-white/10 space-y-2">
+                        <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                          <Database className="w-3.5 h-3.5 text-indigo-400" /> Retrieved Context Evidence Shared Across Models:
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+                          {comparisonResults.retrieved_passages.map((p: any, idx: number) => (
+                            <div key={idx} className="p-2.5 rounded-lg bg-slate-900 border border-white/5 space-y-1">
+                              <span className="text-[10px] font-mono text-indigo-400 font-bold block">[Passage {p.index}] {p.title}</span>
+                              <p className="text-slate-300 text-[11px] line-clamp-3 italic">"{p.content}"</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Add Custom Model Modal */}
+          {showAddModelModal && (
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="w-full max-w-lg bg-slate-900 border border-white/10 rounded-2xl p-6 space-y-5 shadow-2xl animate-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-600/30 text-emerald-400 border border-emerald-500/40">
+                      <Cpu className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Add Model Gateway Endpoint</h3>
+                      <p className="text-[11px] text-slate-400">Connect any model with custom API key & base URL</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowAddModelModal(false)}
+                    className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Quick Autofill Presets */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase text-slate-400 font-mono">Quick Endpoint Presets:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewModelLabel("DeepSeek V3");
+                        setNewModelName("deepseek-chat");
+                        setNewModelProvider("openai_compatible");
+                        setNewModelBaseUrl("https://api.deepseek.com/v1");
+                      }}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors border border-white/5"
+                    >
+                      DeepSeek
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewModelLabel("OpenAI GPT-4o");
+                        setNewModelName("gpt-4o");
+                        setNewModelProvider("openai");
+                        setNewModelBaseUrl("https://api.openai.com/v1");
+                      }}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors border border-white/5"
+                    >
+                      OpenAI
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewModelLabel("Groq LLaMA 3.3");
+                        setNewModelName("llama-3.3-70b-versatile");
+                        setNewModelProvider("openai_compatible");
+                        setNewModelBaseUrl("https://api.groq.com/openai/v1");
+                      }}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors border border-white/5"
+                    >
+                      Groq
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewModelLabel("Anthropic Claude 3.5");
+                        setNewModelName("claude-3-5-sonnet-20241022");
+                        setNewModelProvider("anthropic");
+                        setNewModelBaseUrl("https://api.anthropic.com/v1");
+                      }}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors border border-white/5"
+                    >
+                      Anthropic
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewModelLabel("Local Ollama");
+                        setNewModelName("llama3.2");
+                        setNewModelProvider("ollama");
+                        setNewModelBaseUrl("http://localhost:11434/v1");
+                        setNewModelApiKey("ollama");
+                      }}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors border border-white/5"
+                    >
+                      Local Ollama
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewModelLabel("Local vLLM");
+                        setNewModelName("mistralai/Mistral-7B-Instruct-v0.3");
+                        setNewModelProvider("openai_compatible");
+                        setNewModelBaseUrl("http://localhost:8000/v1");
+                      }}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono transition-colors border border-white/5"
+                    >
+                      vLLM / LMStudio
+                    </button>
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="space-y-3.5 text-xs">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-300 font-medium mb-1">Display Label</label>
+                      <input
+                        type="text"
+                        value={newModelLabel}
+                        onChange={e => setNewModelLabel(e.target.value)}
+                        placeholder="e.g. DeepSeek V3 Production"
+                        className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 font-medium mb-1">Model Name / ID *</label>
+                      <input
+                        type="text"
+                        value={newModelName}
+                        onChange={e => setNewModelName(e.target.value)}
+                        placeholder="e.g. deepseek-chat"
+                        className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-medium mb-1">Provider Protocol</label>
+                    <select
+                      value={newModelProvider}
+                      onChange={e => setNewModelProvider(e.target.value as any)}
+                      className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-xs"
+                    >
+                      <option value="openai_compatible">OpenAI-Compatible Gateway (DeepSeek, Groq, Together, vLLM, OpenRouter)</option>
+                      <option value="openai">OpenAI Native API</option>
+                      <option value="anthropic">Anthropic Native API</option>
+                      <option value="gemini">Google Gemini Native API</option>
+                      <option value="ollama">Local Ollama API</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-medium mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Globe className="w-3 h-3 text-slate-400" /> Gateway Base URL *
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-mono">e.g. https://api.deepseek.com/v1</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newModelBaseUrl}
+                      onChange={e => setNewModelBaseUrl(e.target.value)}
+                      placeholder="https://api.openai.com/v1"
+                      className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 font-medium mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Key className="w-3 h-3 text-slate-400" /> API Key (Optional / Gateway Token)
+                      </span>
+                      <span className="text-[10px] text-slate-500">Stored client-side only</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={newModelApiKey}
+                      onChange={e => setNewModelApiKey(e.target.value)}
+                      placeholder="sk-..."
+                      className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-mono text-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="block text-slate-300 font-medium mb-1">
+                        Temperature: <span className="text-emerald-400 font-mono">{newModelTemperature}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="0.0"
+                        max="1.0"
+                        step="0.05"
+                        value={newModelTemperature}
+                        onChange={e => setNewModelTemperature(Number(e.target.value))}
+                        className="w-full accent-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-300 font-medium mb-1">
+                        Max Output Tokens: <span className="text-emerald-400 font-mono">{newModelMaxTokens}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min="256"
+                        max="4096"
+                        step="256"
+                        value={newModelMaxTokens}
+                        onChange={e => setNewModelMaxTokens(Number(e.target.value))}
+                        className="w-full accent-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModelModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddModel}
+                    disabled={!newModelName.trim() || !newModelBaseUrl.trim()}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Save & Register Model</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
             <div className="glass-panel p-6 rounded-2xl border border-purple-500/20 space-y-6 animate-in fade-in duration-200">
               {/* Header */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">

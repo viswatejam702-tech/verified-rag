@@ -51,9 +51,10 @@ Thumbs.db
 
 # Cache & HuggingFace Models
 .cache/
-models/
+/models/
 huggingface/
 checkpoints/
+!next-app/app/api/models/
 
 # Evaluation outputs
 eval/results/
